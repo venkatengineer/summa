@@ -1,0 +1,38 @@
+name: Daily Commit
+
+on:
+  schedule:
+    # Runs twice daily (5:30 PM IST and 11:30 PM IST for safety)
+    - cron: "0 12,18 * * *"
+
+  workflow_dispatch: # allows manual run from Actions tab
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # required to push changes
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update README with timestamp
+        run: |
+          echo "Last updated: $(date -u)" >> README.md
+
+      - name: Commit changes (if any)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add README.md
+
+          # Only commit if there is a change
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: daily streak update"
+            git push
+          fi
